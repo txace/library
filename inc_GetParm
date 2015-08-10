@@ -1,0 +1,216 @@
+'%version 02.0 08/07/12 GCC
+' ^ fake version string to not confuse the main script
+'
+'parmfile parm search include
+'
+'******* this function only works as an include ********
+'
+'Author: Tim Markello
+'Date: 1/28/2011
+'
+'RLE 20110428 .001
+'  - removed varList[] and parmlines[] args
+'  - added loadVars which is a csv string of var/parm names to load
+'  - removed parmlines[] from $getparm to increase speed
+'  - added varPtr var for CSV load.
+'RLE 20110429 .002
+'  - added wildcard option in loadVars in order to load multiple without having to specify each
+'  - added getVarList()
+'TJM  20120806 2.0
+'  ~ Major rewrite:
+'   + Use fold and perl on Unix shell to grab active parms and values from parmfile argument
+'   + Process just active parm & value pairs matching against script varialbes
+'     active parameters must start position 1 of the line.
+'     '*' character in position 1 of a line is used to indicate a comment / inactive parameter
+'   - loadVars argument & processing and wildcard option processing removed / no longer needed since only
+'      active parameters from parmfile are processed - not all variables in script
+'   + Added varlist[] back to argument signature with $allowupdate
+'   + Added array and 2d array parmfile options using the :: parameter-x-y :: format
+'      example: callscript-1 testscript  // callscript[1] == "testscript"
+'               callscript-2 fakescript  // callscript[2] == "fakescript"
+'               dstname-1-1 c.fn         // dstname[1,1] == "c.fn"
+'               dstname-1-2 c.ln         // dstname[1,2] == "c.ln"
+'               dstname-2-1 c.bd         // dstname[2,1] == "c.bd"
+'   + added value appending using :: parameter + value :: format
+'      example: noteoption first part    // noteoption == "first part"
+'               noteoption + second part // noteoption == "first part second part"
+'   + Added return code 2 to indicate unix command error
+'   - removed variable casting since $copy var does that by default
+'
+'''''''''''''''''''''''''''''''''''''
+'
+'Notes on Use:
+'this function checks the parmfile argument for
+' parameters that match the script variable names
+' if a match is found the parmeter value is
+' converted to the script's variable type and
+' the script variable is updated with that value
+'
+' Return    0 = normal completion
+'           1 = invalid parmfile reference
+'           2 = unix error
+'-------------------------------------------------------
+dynamic FUNCTION getParm(parmfile, varlist[]) is b
+   parmfile    is x
+   loadVars    is x
+   
+   p[]         is x
+   pname       is x
+   pvalue      is x
+   xidx        is x
+   yidx        is x
+   putvar[,]   is x
+   copyptr     is b
+   ptr         is b
+   
+   varList[]   is x
+   varTypes[]  is x
+   i           is b
+   varPtr      is b
+   varName     is x
+   varType     is x
+   string      is x
+   parmPtr     is b
+   x_var[]     is x
+   x_tmp[]     is x
+   setvar      is v
+   tmpVar      is v
+   str         is x
+   j           is i
+   k           is i
+
+   _ll         is i
+   'init
+   _ll = $looplimit
+   $looplimit = 32767
+   $allowupdate(varlist[])
+   copyptr = $varptr(putvar[])
+   'valid parm?
+   parmfile = $sysname + "/PARM/" + $uc(parmfile)
+   if $checkfile(parmfile) > 0 then
+      getparm = 1
+      return
+   endif
+   'unix command
+   string = "fold -bw80 " + parmfile + " | perl -lne 'm/^([^\*]\S*)\s(.*)$/g && print $1.chr(17).$2;'"
+   if $unix(string, p[]) > 0 then
+      getparm = 2
+      return
+   endif
+   'parm process
+   i = 0 
+   do while i++ < $maxarray(p[])
+      p[i] = p[i]
+      $parsem(p[i],1, x"11", pname, pvalue)
+      $parsem(pname,1, "-", pname, xidx, yidx)
+      j = $num(xidx)
+      k = $num(yidx)
+      if $num(yidx) < 1 and $num(xidx) > 0 then
+         k = $num(xidx)
+         j = 1
+      endif
+      pname = $uc(pname)
+      varPtr = $find(pname, varList[], 1, "F")
+      if varPtr = 0 then
+         varPtr = $maxarray(varList[])
+         varName = "START"
+         do until varName !dp
+            (void)$getvar(++varPtr,,,,varName)
+            varList[varPtr] = varName
+            if pname = varName then
+               $clear(varName)
+            endif
+         enddo
+      endif
+      if varPtr > 0 then
+         (void)$copyvar(varptr, copyptr)
+         ptr = 1
+         if $parse(pvalue, ptr, " ") = "+" then
+            putvar[j,k] += $trim($seg(pvalue,ptr))
+         else
+            putvar[j,k] = $trim(pvalue)
+         endif
+         (void)$copyvar(copyptr, varptr)
+      endif
+   enddo
+   $looplimit = _ll
+end getParm
+         
+'   parmPtr = $varptr(setvar)
+'
+'   if loadVars dp then
+'      getVarList(varList[],varTypes[])
+'      (void)$getds(x_var[],loadVars)
+'
+'      '* handle wildcards
+'      i = $find("*",x_var[])
+'      if i > 0 then
+'         do while i > 0
+'            k = $len(x_var[i]) - 1
+'            str = $left(x_var[i],k)
+'            j = $find(str,varList[])
+'            do while j > 0
+'               if str = $left(varList[j],k) then
+'                  (void)$arrPush(x_tmp[],varList[j])
+'               endif
+'               j = $find(str,varList[],++j)
+'            enddo
+'
+'            $clear(x_var[i])
+'            i = $find("*",x_var[],++i)
+'         enddo
+'
+'         (void)$arrayMerge(x_var[],x_tmp[])
+'         (void)$arrCompress(x_var[])
+'         (void)$sortu(x_var[])
+'      endif
+'
+'      i = 0
+'      do while i++ < $maxarray(x_var[])
+'         varPtr  = $find(x_var[i],varList[],,"F")
+'         varType = varTypes[varPtr]
+'         (void)$getparm(,parmfile, x_var[i], string)
+'         gosub _doCopy
+'      enddo
+'
+'      goto _exit
+'   endif
+'
+'   varPtr = 0
+'   varName = "A"
+'   do while varName dp
+'      (void)$getvar(++varPtr,,varType,,varName)
+'      (void)$getparm(,parmfile, varName, string)
+'      gosub _doCopy
+'   enddo
+'   goto _exit
+'
+'   _doCopy:
+'   if string dp then
+'      $setvartype(setvar, varType)
+'      setvar = $cast(string, varType)
+'      (void)$copyvar(parmPtr,varPtr)
+'   endif
+'   goback
+'
+'   _exit:
+'   $looplimit = _ll
+'end getParm
+'
+'dynamic FUNCTION getVarList(varList[],varTypes[]) is null
+'   varPtr      is b
+'   varName     is x
+'   varList[]   is x
+'   varTypes[]  is x
+'   varType     is x
+'   $allowupdate(varList[],varTypes[])
+'
+'   varPtr = 0
+'   varName = "START"
+'   do while varName dp
+'      (void)$getvar(++varPtr,,varType,,varName)
+'      varList[varPtr]   = varName
+'      varTypes[varPtr]  = varType
+'   enddo
+'
+'end getVarList

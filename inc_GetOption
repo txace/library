@@ -1,0 +1,113 @@
+'%version 01.0.01 02/08/12 GCC
+' ^ fake version string to not confuse the main script
+'
+'include file function to map option string to variables in main script
+'
+' Designed to be used in conjunction with inc_GetParm
+'
+'******* this function only works as an include ********
+'
+'Author: Tim Markello
+'Date: 1/28/2011
+'
+'Notes on Use:
+'this function checks the delimited option argument string for
+' options that match the script variable names
+' if a match is found the option value is
+' converted to the script's variable type and
+' the variable is updated with that value
+'
+'default delim string format:
+'  <variable name>`<variable value>;<var name>`<var value>;
+'
+'***IMPORTANT NOTE*****
+'This function allows you to override the optend and optdelim values in the option string
+' to allow you to not have to reformat the option string to match the prescribed delims
+'
+'example:
+' option = "optend`|;optdelim |v1 example1|v2 example 2"
+'
+' this changes optend = "|" and optdelim = " " 
+' assuming v1 and v2 are variables declared in the mainscript:
+'   v1 = "example1" 
+'   v2 = "example 2"
+'***IMPORTANT NOTE*****
+'
+' Return    0 = normal completion
+'           1 = option !dp
+'
+'-----------------------------------------------------------------------------------------------
+' Updates
+' TJM 2/8/12 .01
+'  + fixed get var loop so that an option specified without matching variable doesn't cause
+'     infinite loop.
+'-----------------------------------------------------------------------------------------------
+
+dynamic function getOption(option[]) is b
+
+option[]    is x
+ptr         is b
+optName     is x
+varPtr      is b
+varLIst[]   is x
+varType[]   is x
+varName     is x
+vType       is x
+temp        is x
+optval[,]   is x
+optptr      is b
+optend      is x
+optdelim    is x
+arrdelim    is x
+i           is b
+x           is b
+y           is b
+xx          is x
+yx          is x
+
+$clear(getOPtion)
+
+if option[] !dp then
+   getOption = 1
+   return
+endif
+
+optend = ";"
+optdelim = "`"
+arrdelim = "-"
+
+optPtr = $varPtr(optval[])
+i = 0
+do while i++ < $maxarray(option[])
+   ptr = 1
+   do while ptr < $len(option[i])
+      optname = $uc($parse(option[i],ptr,optdelim))
+      $parsem(optname,1,arrdelim,optname,xx,yx)
+      varptr = $find(optname, varlist[],1,"F")
+      if varptr = 0 then
+         varptr = $maxarray(varlist[])
+      endif
+      do while optname != varlist[varptr]
+         (void)$getvar(++varptr,,vType,,varName)
+         if varName !dp then
+            varlist[varptr] = optname
+         else
+            varList[varptr] = varName
+            varType[varPtr] = vtype
+         endif
+      enddo
+      temp = $parse(option[i],ptr,optend)
+'      $setvartype(optval[], varType[varPtr])
+'      optval = $cast(temp,varType[varPtr])
+      x = $casti(xx)
+      y = $casti(yx)
+      if x dp and y !dp then
+         y = x
+         x = 1
+      endif
+      (void)$copyvar(varptr,optptr)
+      optval[x,y] = temp
+      (void)$copyvar(optptr,varptr)
+   enddo
+enddo
+end getOption
