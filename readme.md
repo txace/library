@@ -118,7 +118,18 @@ v2 = "example 2"
 string clientid
 
 #### Description
-> screen to allow the user to select a client id
+
+screen to allow the user to select a client id
+
+### `public dynamic function ConfirmExit() is x`
+
+#### Return
+
+`"Y"` or `!dp`
+
+#### Description
+
+Displays screen to get 'are you sure' confirmation from the user. Warning message that data will not be saved is displayed.
 
 ### `public dynamic function DisplayErrors(errors[], HeaderYN) is null`
 
