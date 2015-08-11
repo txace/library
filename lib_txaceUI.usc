@@ -1,7 +1,7 @@
 'Shared User Interface Library for TxACE
 %version 0.0.0 8/11/2015
 
-library txaceUI()
+library lib_txaceUI()
 
 public dynamic function GetClientID() is x
 
@@ -56,7 +56,7 @@ if $endbutton = "SUBMIT" or yes_btn = "Y" then
 endif
 end ConfirmExit 
 
-public dynaimc function DisplayErrors(errors[],HeaderYN) is null
+public dynamic function DisplayErrors(errors[],HeaderYN) is null
 
 errors[]    is x
 index       is i
