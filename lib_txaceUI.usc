@@ -1,0 +1,174 @@
+'Shared User Interface Library for TxACE
+%version 0.0.0 8/11/2015
+
+library txaceUI()
+
+public dynamic function GetClientID() is x
+
+c.id  is x
+
+$clear(c.id) 
+
+$submitopt("off", "NEXT")
+$cancelopt("off", "CANCEL")
+
+$form()
+   $text("{H1}Enter Client ID{/H1}")
+   $table("t1",,"width='100%'")
+      $row()
+         $col("right",,"50%") 
+            $text("ENTER CLIENT ID: ","datatag")  
+         $col() 
+            $textbox(c.id,"DB``02",6,4,"Y") 
+            $editmsg(c.id)
+   $endtable("t1")
+
+$sendform()
+
+if $endbutton = "SUBMIT" then
+   GetClientID = c.id
+endif
+end GetClientID
+
+public dynamic function ConfirmExit() is x
+
+yes_btn  is x
+no_btn   is x
+
+$submitopt("off", "YES")
+$cancelopt("off", "NO")
+
+$form("confirm")
+   $bstyle("buttondown","button")
+   $text("{H1 align='CENTER'}ARE YOU SURE{/H1}")
+   $text("{CENTER}If you cancel now, {u}{b}{font color=red}NONE OF THE DATA{/font}{/b}{/u} will be saved!{/CENTER}",,"font-family:times new roman; font-size:14pt; color:black; font-weight:bold;")
+   $text("{CENTER}Do you wish to cancel and return to Main Menu?{/CENTER}",,"font-family:times new roman; font-size:14pt; color:darkblue; font-weight:bold;")
+   $br(2)
+   $tag("<center>")
+      $submit(yes_btn,"YES")
+      $ctag("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+      $submit(no_btn,"NO")
+   $tag("</center>")
+$sendform("confirm")
+
+if $endbutton = "SUBMIT" or yes_btn = "Y" then
+   ConfirmExit = "Y"
+endif
+end ConfirmExit 
+
+public dynaimc function DisplayErrors(errors[],HeaderYN) is null
+
+errors[]    is x
+index       is i
+HeaderYN    is x
+
+$submitopt("off", "")
+$cancelopt("off", "BACK")
+
+$form("errors")
+
+   if $uc(HeaderYN) != "N"
+      ClientPageHeader($regid,"Y")
+   endif 
+
+   $text("{H1}Errors Were Found{/H1}")
+   $br()
+   $tag("<CENTER>")
+      index = 0
+      do while index++ <= $maxarray(errors[])
+         $br()
+         $text(errors[index] , "error")
+      enddo
+   $tag("</CENTER>")
+$sendform("errors")
+end DisplayErrors
+
+public dynamic function ClientPageHeader(CID) is null
+
+CID   is x
+c.fn  is x
+c.mn  is x
+c.ln  is x
+sp    is x
+
+sp = "&nbsp;"
+
+if $regid dp and cid !dp
+   CID = $regid
+endif
+(void)$dbread(02, CID, c.fn, c.mn, c.ln)
+
+$table("PageHeader",,"width='100%'")
+   $row()
+      $col("right",,"33%","1","1")
+         $text(`"Consumer ID" + sp + sp + sp + sp`,"hdrtag")
+         $text(CID,"hdrdate")
+      $col(,,"25%","1","1")
+      $col(,,"42%","1","1")
+         $text(`"Consumer Name" + sp + sp + sp + sp`,"hdrtag") 
+         $text(`c.ln + ", " + c.fn`,"hdrdate")
+   if c.mn dp
+      $text(`sp + $seg(c.mn,1,1) + "."`,"hdrdate")
+   endif
+$endtable("PageHeader")
+$tag("<hr/>")
+end ClientPageHeader
+
+'********************************************************************************************
+'THIS FUNCTION WILL PRINT SERVICE DATA ON A BUI FORM IN TABLE FORMAT
+'AUTHOR: SCOTT B.
+'DATE: 5/17/2004
+'********************************************************************************************
+public dynamic function report(e_ser, e_ru, e_start, e_dur, e_loc, video) is x
+
+e_ser    is b 'EVENT SERVICE CODE
+e_ru     is b 'EVENT RU
+e_start  is t 'EVENT START TIME
+e_dur    is t 'EVENT DURATION
+e_loc    is x 'EVENT LOCATION
+video    is x 'VIDEO CONFERENCE VARIABLE
+endtime  is t 'SERVICE ENDTIME
+
+endtime = e_start + e_dur
+
+$table("t1",,"border='1' cellspacing='0' width='100%'")
+   $row(,"align='center' bgcolor='#EEEEEE'")
+      $col()
+         $text("SAC")
+      $col()
+         $text("RU")
+      $col()
+         $text("Loc")
+      $col()
+         $text("Start")
+      $col()
+         $text("Cl Dur")
+      $col()
+         $text("Staff Dur")
+      $col()
+         $text("Endtime")
+      $col()
+         $text("Video")  
+   $row(,"align='center' bgcolor='#EEEEEE'")
+      $col()
+         $text(e_ser)
+      $col()
+         $text(e_ru)
+      $col()
+         $text(e_loc)
+      $col()
+         $text(e_start)
+      $col()
+         $text(`$format(e_dur, "HH.MM")`)
+      $col()
+         $text(`$format(e_dur, "HH.MM")`)
+      $col()
+         $text(endtime)
+      $col()
+         if video dp
+            $text(video)
+         else
+            $ctag("&nbsp;")
+         endif  
+$endtable("t1")
+end report
