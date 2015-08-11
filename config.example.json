@@ -1,0 +1,9 @@
+{
+   "system": "/c0/YOUR/SYSTEM",
+   "web": "/c0/YOUR/BUI/INSTALL",
+   "host": "UNIXHOSTNAME",
+   "name": "UNIXNAME",
+   "user": "UNIXPASS",
+   "cronname": "UNIXCRONNAME",
+   "cron": "UNIXCRONPASS"
+}
