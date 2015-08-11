@@ -108,3 +108,48 @@ This changes optend = "|" and optdelim = " ", which will result in the following
 v1 = "example1" 
 v2 = "example 2"
 ```
+
+## lib_txaceUI
+
+### `public dynamic function GetClientID() is x`
+
+#### Return 
+
+string clientid
+
+#### Description
+> screen to allow the user to select a client id
+
+### `public dynamic function DisplayErrors(errors[], HeaderYN) is null`
+
+#### Return 
+
+null
+
+#### Description
+
+Creates screen to display the list of strings in `errors[]` array as 'errors'. The HeaderYN argument controls the display of the `ClientPageHeader`: if HeaderYN != "N" then the `ClientPageHeader` will display
+
+### `public dynamic function ClientPageHeader(CID) is null`
+
+#### Return 
+
+null
+
+#### Description
+
+Writes an html table to 'current' form to display the name and id of `CID`
+
+*Note* you must call the function inbetween `$form()` and `$sendform()` functions
+
+### `public dynamic function report(e_ser, e_ru, e_start, e_dur, e_loc, video) is x`
+
+#### Return
+
+DNP
+
+#### Description
+
+Writes an html table to 'current' form to display the event data passed in through the arguments
+
+*Note* you must call the function inbetween `$form()` and `$sendform()` functions
