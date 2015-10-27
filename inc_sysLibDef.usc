@@ -1,0 +1,36 @@
+'library definitions needed to use the l_snapLibMain library
+'use this include if you want to use the <snap> tag in your template to 
+'create snapshots
+client_handle     is x
+dd_handle	      is x
+draft_handle	   is x
+dsum_handle	      is x
+general_handle	   is x
+inote_handle	   is x
+note_handle       is x
+obj_handle	      is x
+report_handle	   is x
+snap_handle	      is x
+staff_handle	   is x
+std_handle	      is x
+snaplib           is x
+snapLibsc         is b
+
+'%common client_handle, dd_handle, draft_handle, dsum_handle, general_handle, inote_handle, note_handle
+'%common obj_handle, report_handle,snap_handle, std_Handle, staff_handle, snaplib
+%global client_handle, dd_handle, draft_handle, dsum_handle, general_handle, inote_handle, note_handle
+%global obj_handle, report_handle,snap_handle, std_Handle, staff_handle, snaplib
+dd_handle	   = "l_dataLib"
+draft_handle	= "l_draftLib"
+dsum_handle	   = "l_dsumLib"
+general_handle	= "l_genLib"
+inote_handle	= "l_inoteLib"
+note_handle    = "l_noteLib"
+obj_handle	   = "l_objLib"
+report_handle	= "l_reportLib"
+snap_handle	   = "l_snapLib"
+staff_handle	= "l_staffLib"
+std_handle	   = "l_stdLib"
+client_handle  = "l_clientLib"
+snaplib        = "l_snapLibMain"
+(void)$loadlib(snaplibsc,"l_snapLibSC")
